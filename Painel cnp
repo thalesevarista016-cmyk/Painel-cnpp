@@ -1,0 +1,1141 @@
+--==================================================
+-- PAINEL CNP
+--==================================================
+
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
+local SoundService = game:GetService("SoundService")
+local Debris = game:GetService("Debris")
+
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+
+--==================================================
+-- CORES
+--==================================================
+
+local ROSA = Color3.fromRGB(255,80,150)
+local VERDE = Color3.fromRGB(46,180,100)
+local BRANCO = Color3.fromRGB(255,255,255)
+
+--==================================================
+-- GUI
+--==================================================
+
+local Gui = Instance.new("ScreenGui")
+Gui.Name = "PainelCNP"
+Gui.ResetOnSpawn = false
+Gui.Parent = PlayerGui
+
+local Main = Instance.new("Frame")
+Main.Name = "MainFrame"
+Main.Size = UDim2.new(0,220,0,565)
+Main.Position = UDim2.new(.5,-110,.5,-282)
+Main.BackgroundColor3 = BRANCO
+Main.Active = true
+Main.Draggable = true
+Main.ClipsDescendants = true
+Main.Parent = Gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0,10)
+corner.Parent = Main
+
+--==================================================
+-- TÍTULO
+--==================================================
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1,-70,0,35)
+Title.Position = UDim2.new(0,10,0,0)
+Title.BackgroundTransparency = 1
+Title.Text = "Painel CNP @yt4wzxk"
+Title.TextColor3 = ROSA
+Title.Font = Enum.Font.SourceSansBold
+Title.TextSize = 16
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = Main
+
+--==================================================
+-- MINIMIZAR
+--==================================================
+
+local Minimize = Instance.new("TextButton")
+Minimize.Size = UDim2.new(0,25,0,25)
+Minimize.Position = UDim2.new(1,-30,0,5)
+Minimize.BackgroundColor3 = ROSA
+Minimize.Text = "-"
+Minimize.TextColor3 = BRANCO
+Minimize.Font = Enum.Font.SourceSansBold
+Minimize.TextSize = 18
+Minimize.Parent = Main
+
+local mc = Instance.new("UICorner")
+mc.CornerRadius = UDim.new(0,6)
+mc.Parent = Minimize
+
+--==================================================
+-- CONTEÚDO
+--==================================================
+
+local Content = Instance.new("Frame")
+Content.Size = UDim2.new(1,0,1,-35)
+Content.Position = UDim2.new(0,0,0,35)
+Content.BackgroundTransparency = 1
+Content.Parent = Main
+
+local function CriarBotao(nome,texto,pos)
+
+	local b = Instance.new("TextButton")
+	b.Name = nome
+	b.Size = UDim2.new(.88,0,0,35)
+	b.Position = UDim2.new(.06,0,0,pos)
+	b.BackgroundColor3 = ROSA
+	b.TextColor3 = BRANCO
+	b.Text = texto
+	b.Font = Enum.Font.SourceSans
+	b.TextSize = 15
+	b.Parent = Content
+
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0,6)
+	c.Parent = b
+
+	return b
+end
+
+local BtnOldAnim =
+	CriarBotao("BtnOldAnim","Old Animation: Desativado",5)
+
+local BtnSpeed =
+	CriarBotao("BtnSpeed","Speed: Desativado",48)
+
+local BtnSoundGun =
+	CriarBotao("BtnSoundGun","Sound Gun: Desativado",91)
+
+local BtnOldShift =
+	CriarBotao("BtnOldShift","Old Shift: Desativado",134)
+
+local BtnCameraOld =
+	CriarBotao("BtnCameraOld","Camera Old: Desativado",177)
+
+local BtnConfete =
+	CriarBotao("BtnConfete","Confete: Desativado",220)
+
+local BtnQualidade =
+	CriarBotao("BtnQualidade","Old Qualidades",263)
+
+local BtnBombaGold =
+	CriarBotao("BtnBombaGold","Bomba Gold: Desativado",306)
+
+local BtnAntiClick =
+	CriarBotao("BtnAntiClick","Anti Click: Desativado",349)
+
+local BtnNoReload =
+	CriarBotao("BtnNoReload","No Reload: Desativado",392)
+
+local BtnAlek =
+	CriarBotao("BtnAlek","Alek Speed Glitch",435)
+
+--==================================================
+-- MINIMIZAR PAINEL
+--==================================================
+
+local minimized = false
+
+Minimize.MouseButton1Click:Connect(function()
+
+	minimized = not minimized
+
+	if minimized then
+
+		Content.Visible = false
+		Main.Size = UDim2.new(0,220,0,35)
+		Minimize.Text = "+"
+		Minimize.BackgroundColor3 = VERDE
+
+	else
+
+		Content.Visible = true
+		Main.Size = UDim2.new(0,220,0,565)
+		Minimize.Text = "-"
+		Minimize.BackgroundColor3 = ROSA
+
+	end
+end)
+
+--==================================================
+-- OLD ANIMATION
+--==================================================
+
+local oldAnim = false
+
+BtnOldAnim.MouseButton1Click:Connect(function()
+
+	oldAnim = not oldAnim
+
+	if oldAnim then
+
+		pcall(function()
+			Workspace.Retargeting =
+				Enum.AnimatorRetargetingMode.Disabled
+		end)
+
+		BtnOldAnim.Text =
+			"Old Animation: Ativado"
+
+		BtnOldAnim.BackgroundColor3 = VERDE
+
+	else
+
+		pcall(function()
+			Workspace.Retargeting =
+				Enum.AnimatorRetargetingMode.Default
+		end)
+
+		BtnOldAnim.Text =
+			"Old Animation: Desativado"
+
+		BtnOldAnim.BackgroundColor3 = ROSA
+
+	end
+end)
+
+--==================================================
+-- SPEED
+--==================================================
+
+local speedEnabled = false
+local speedConnections = {}
+local speedCharacterConnection
+
+local function limparSpeed()
+
+	for _,con in ipairs(speedConnections) do
+		pcall(function()
+			con:Disconnect()
+		end)
+	end
+
+	table.clear(speedConnections)
+
+	local char = Player.Character
+
+	if char then
+
+		local part =
+			char:FindFirstChild("GlitchPart")
+
+		if part then
+			part:Destroy()
+		end
+	end
+end
+
+local function iniciarSpeed(char)
+
+	if not speedEnabled then
+		return
+	end
+
+	limparSpeed()
+
+	local humanoid =
+		char:WaitForChild("Humanoid",5)
+
+	local root =
+		char:WaitForChild("HumanoidRootPart",5)
+
+	if not humanoid or not root then
+		return
+	end
+
+	local part = Instance.new("Part")
+
+	part.Name = "GlitchPart"
+	part.Size = Vector3.new(2,2,2)
+	part.Transparency = 1
+	part.CanCollide = false
+	part.CanTouch = false
+	part.CanQuery = false
+	part.Parent = char
+
+	local weld = Instance.new("Weld")
+
+	weld.Part0 = root
+	weld.Part1 = part
+	weld.C0 = CFrame.new()
+	weld.Parent = part
+
+	local ativo = false
+	local distancia = 0
+
+	local connection =
+		humanoid.AnimationPlayed:Connect(function(track)
+
+			if not track.Animation then
+				return
+			end
+
+			local id =
+				track.Animation.AnimationId
+
+			if id == "rbxassetid://15609995579"
+			or id == "http://www.roblox.com/asset/?id=15609995579" then
+
+				ativo = true
+				distancia = 7.5
+
+			elseif id ==
+				"rbxassetid://107481557610007" then
+
+				ativo = true
+				distancia = 10.5
+			end
+
+			track.Stopped:Connect(function()
+
+				ativo = false
+				weld.C0 = CFrame.new()
+
+			end)
+		end)
+
+	table.insert(
+		speedConnections,
+		connection
+	)
+
+	local render =
+		RunService.RenderStepped:Connect(function()
+
+			if ativo and part.Parent then
+
+				weld.C0 =
+					CFrame.new(
+						0,
+						0,
+						distancia
+					)
+			end
+		end)
+
+	table.insert(
+		speedConnections,
+		render
+	)
+end
+
+BtnSpeed.MouseButton1Click:Connect(function()
+
+	speedEnabled = not speedEnabled
+
+	if speedEnabled then
+
+		BtnSpeed.Text =
+			"Speed: Ativado"
+
+		BtnSpeed.BackgroundColor3 =
+			VERDE
+
+		if Player.Character then
+			iniciarSpeed(Player.Character)
+		end
+
+		if speedCharacterConnection then
+			speedCharacterConnection:Disconnect()
+		end
+
+		speedCharacterConnection =
+			Player.CharacterAdded:Connect(function(char)
+
+				task.wait(.2)
+
+				if speedEnabled then
+					iniciarSpeed(char)
+				end
+			end)
+
+	else
+
+		BtnSpeed.Text =
+			"Speed: Desativado"
+
+		BtnSpeed.BackgroundColor3 =
+			ROSA
+
+		if speedCharacterConnection then
+			speedCharacterConnection:Disconnect()
+			speedCharacterConnection = nil
+		end
+
+		limparSpeed()
+	end
+end)
+
+--==================================================
+-- SOUND GUN
+--==================================================
+
+local soundGun = false
+local soundConnections = {}
+local gunSound
+
+local function configurarSoundGun(char)
+
+	if not soundGun then
+		return
+	end
+
+	local humanoid =
+		char:FindFirstChildOfClass("Humanoid")
+
+	if not humanoid then
+		return
+	end
+
+	local connection =
+		humanoid.AnimationPlayed:Connect(function(track)
+
+			if not soundGun then
+				return
+			end
+
+			local tool =
+				char:FindFirstChildOfClass("Tool")
+
+			if tool and tool.Name == "Gun" then
+
+				if gunSound then
+					gunSound:Play()
+				end
+			end
+		end)
+
+	table.insert(
+		soundConnections,
+		connection
+	)
+end
+
+BtnSoundGun.MouseButton1Click:Connect(function()
+
+	soundGun = not soundGun
+
+	if soundGun then
+
+		BtnSoundGun.Text =
+			"Sound Gun: Ativado"
+
+		BtnSoundGun.BackgroundColor3 =
+			VERDE
+
+		gunSound =
+			Instance.new("Sound")
+
+		gunSound.Name =
+			"CNPSoundGun"
+
+		gunSound.SoundId =
+			"rbxassetid://6968135315"
+
+		gunSound.Volume = 1
+		gunSound.Parent = SoundService
+
+		if Player.Character then
+			configurarSoundGun(
+				Player.Character
+			)
+		end
+
+	else
+
+		BtnSoundGun.Text =
+			"Sound Gun: Desativado"
+
+		BtnSoundGun.BackgroundColor3 =
+			ROSA
+
+		for _,con in ipairs(soundConnections) do
+			pcall(function()
+				con:Disconnect()
+			end)
+		end
+
+		table.clear(soundConnections)
+
+		if gunSound then
+			gunSound:Destroy()
+			gunSound = nil
+		end
+	end
+end)
+
+Player.CharacterAdded:Connect(function(char)
+
+	task.wait(.2)
+
+	if soundGun then
+		configurarSoundGun(char)
+	end
+end)
+
+--==================================================
+-- OLD SHIFT
+--==================================================
+
+local oldShift = false
+local shiftConnection
+
+BtnOldShift.MouseButton1Click:Connect(function()
+
+	oldShift = not oldShift
+
+	if oldShift then
+
+		BtnOldShift.Text =
+			"Old Shift: Ativado"
+
+		BtnOldShift.BackgroundColor3 =
+			VERDE
+
+		if shiftConnection then
+			shiftConnection:Disconnect()
+		end
+
+		shiftConnection =
+			RunService.RenderStepped:Connect(function()
+
+				local char =
+					Player.Character
+
+				if not char then
+					return
+				end
+
+				local humanoid =
+					char:FindFirstChildOfClass(
+						"Humanoid"
+					)
+
+				if not humanoid then
+					return
+				end
+
+				if UIS.MouseBehavior ==
+					Enum.MouseBehavior.LockCenter then
+
+					humanoid.CameraOffset =
+						Vector3.new(.9,1.1,0)
+
+				else
+
+					humanoid.CameraOffset =
+						Vector3.new(0,0,0)
+				end
+			end)
+
+	else
+
+		BtnOldShift.Text =
+			"Old Shift: Desativado"
+
+		BtnOldShift.BackgroundColor3 =
+			ROSA
+
+		if shiftConnection then
+			shiftConnection:Disconnect()
+			shiftConnection = nil
+		end
+
+		local char =
+			Player.Character
+
+		if char then
+
+			local humanoid =
+				char:FindFirstChildOfClass(
+					"Humanoid"
+				)
+
+			if humanoid then
+				humanoid.CameraOffset =
+					Vector3.new(0,0,0)
+			end
+		end
+	end
+end)
+
+--==================================================
+-- CAMERA OLD
+--==================================================
+
+local cameraOld = false
+local cameraConnection
+
+BtnCameraOld.MouseButton1Click:Connect(function()
+
+	cameraOld = not cameraOld
+
+	if cameraOld then
+
+		BtnCameraOld.Text =
+			"Camera Old: Ativado"
+
+		BtnCameraOld.BackgroundColor3 =
+			VERDE
+
+		cameraConnection =
+			RunService.RenderStepped:Connect(function()
+
+				local camera =
+					Workspace.CurrentCamera
+
+				if not camera then
+					return
+				end
+
+				local distance =
+					(
+						camera.Focus.Position -
+						camera.CFrame.Position
+					).Magnitude
+
+				if distance >= 1 then
+
+					camera.CFrame =
+						camera.CFrame +
+						Vector3.new(0,.3,0)
+				end
+			end)
+
+	else
+
+		BtnCameraOld.Text =
+			"Camera Old: Desativado"
+
+		BtnCameraOld.BackgroundColor3 =
+			ROSA
+
+		if cameraConnection then
+			cameraConnection:Disconnect()
+			cameraConnection = nil
+		end
+	end
+end)
+
+--==================================================
+-- CONFETE
+--==================================================
+
+local confete = false
+
+BtnConfete.MouseButton1Click:Connect(function()
+
+	confete = not confete
+
+	if confete then
+
+		BtnConfete.Text =
+			"Confete: Ativado"
+
+		BtnConfete.BackgroundColor3 =
+			VERDE
+
+	else
+
+		BtnConfete.Text =
+			"Confete: Desativado"
+
+		BtnConfete.BackgroundColor3 =
+			ROSA
+	end
+end)
+
+--==================================================
+-- OLD QUALIDADES
+--==================================================
+
+local qualityPanel =
+	Instance.new("Frame")
+
+qualityPanel.Size =
+	UDim2.new(0,235,0,195)
+
+qualityPanel.Position =
+	UDim2.new(.5,-117,.5,-97)
+
+qualityPanel.BackgroundColor3 =
+	ROSA
+
+qualityPanel.Visible = false
+qualityPanel.Active = true
+qualityPanel.Draggable = true
+qualityPanel.ZIndex = 100
+qualityPanel.Parent = Gui
+
+local qc = Instance.new("UICorner")
+qc.CornerRadius = UDim.new(0,10)
+qc.Parent = qualityPanel
+
+local qualityTitle =
+	Instance.new("TextLabel")
+
+qualityTitle.Size =
+	UDim2.new(1,-75,0,35)
+
+qualityTitle.Position =
+	UDim2.new(0,10,0,0)
+
+qualityTitle.BackgroundTransparency = 1
+qualityTitle.Text = "Old Qualidades"
+qualityTitle.TextColor3 = BRANCO
+qualityTitle.Font = Enum.Font.SourceSansBold
+qualityTitle.TextSize = 18
+qualityTitle.TextXAlignment =
+	Enum.TextXAlignment.Left
+
+qualityTitle.ZIndex = 101
+qualityTitle.Parent = qualityPanel
+
+local qualityMin =
+	Instance.new("TextButton")
+
+qualityMin.Size =
+	UDim2.new(0,28,0,28)
+
+qualityMin.Position =
+	UDim2.new(1,-67,0,4)
+
+qualityMin.BackgroundColor3 =
+	ROSA
+
+qualityMin.Text = "-"
+qualityMin.TextColor3 = BRANCO
+qualityMin.Font =
+	Enum.Font.SourceSansBold
+
+qualityMin.TextSize = 18
+qualityMin.ZIndex = 102
+qualityMin.Parent = qualityPanel
+
+local qualityClose =
+	Instance.new("TextButton")
+
+qualityClose.Size =
+	UDim2.new(0,28,0,28)
+
+qualityClose.Position =
+	UDim2.new(1,-34,0,4)
+
+qualityClose.BackgroundColor3 =
+	Color3.fromRGB(220,50,120)
+
+qualityClose.Text = "X"
+qualityClose.TextColor3 = BRANCO
+qualityClose.Font =
+	Enum.Font.SourceSansBold
+
+qualityClose.TextSize = 16
+qualityClose.ZIndex = 102
+qualityClose.Parent = qualityPanel
+
+local qualityContent =
+	Instance.new("Frame")
+
+qualityContent.Size =
+	UDim2.new(1,0,1,-40)
+
+qualityContent.Position =
+	UDim2.new(0,0,0,40)
+
+qualityContent.BackgroundTransparency = 1
+qualityContent.Parent = qualityPanel
+
+local function QualityButton(text,pos)
+
+	local b = Instance.new("TextButton")
+
+	b.Size =
+		UDim2.new(.86,0,0,38)
+
+	b.Position =
+		UDim2.new(.07,0,0,pos)
+
+	b.BackgroundColor3 =
+		ROSA
+
+	b.TextColor3 =
+		BRANCO
+
+	b.Text = text
+
+	b.Font =
+		Enum.Font.SourceSansBold
+
+	b.TextSize = 15
+	b.ZIndex = 101
+	b.Parent = qualityContent
+
+	local c = Instance.new("UICorner")
+	c.CornerRadius =
+		UDim.new(0,7)
+
+	c.Parent = b
+
+	return b
+end
+
+local BtnQualityOld =
+	QualityButton(
+		"Qualidade Old",
+		5
+	)
+
+local BtnQuality2024 =
+	QualityButton(
+		"MM2 2024 Final Clip",
+		50
+	)
+
+local BtnQualityOff =
+	QualityButton(
+		"Desativar Qualidade",
+		95
+	)
+
+BtnQualidade.MouseButton1Click:Connect(function()
+	qualityPanel.Visible = true
+end)
+
+local qualityMinimized = false
+
+qualityMin.MouseButton1Click:Connect(function()
+
+	qualityMinimized =
+		not qualityMinimized
+
+	if qualityMinimized then
+
+		qualityContent.Visible = false
+
+		qualityPanel.Size =
+			UDim2.new(0,235,0,38)
+
+		qualityMin.Text = "+"
+
+	else
+
+		qualityContent.Visible = true
+
+		qualityPanel.Size =
+			UDim2.new(0,235,0,195)
+
+		qualityMin.Text = "-"
+	end
+end)
+
+qualityClose.MouseButton1Click:Connect(function()
+
+	qualityPanel.Visible = false
+	qualityMinimized = false
+	qualityContent.Visible = true
+
+	qualityPanel.Size =
+		UDim2.new(0,235,0,195)
+
+	qualityMin.Text = "-"
+end)
+
+--==================================================
+-- QUALIDADE
+--==================================================
+
+local originalLighting = {
+	Technology = Lighting.Technology,
+	GlobalShadows = Lighting.GlobalShadows,
+	Brightness = Lighting.Brightness,
+	ExposureCompensation =
+		Lighting.ExposureCompensation,
+	Ambient = Lighting.Ambient,
+	OutdoorAmbient =
+		Lighting.OutdoorAmbient,
+	FogStart = Lighting.FogStart,
+	FogEnd = Lighting.FogEnd,
+	EnvironmentDiffuseScale =
+		Lighting.EnvironmentDiffuseScale,
+	EnvironmentSpecularScale =
+		Lighting.EnvironmentSpecularScale
+}
+
+local originalEffects = {}
+
+for _,obj in ipairs(Lighting:GetChildren()) do
+
+	if obj:IsA("Atmosphere")
+	or obj:IsA("BloomEffect")
+	or obj:IsA("SunRaysEffect")
+	or obj:IsA("BlurEffect")
+	or obj:IsA("ColorCorrectionEffect")
+	or obj:IsA("DepthOfFieldEffect") then
+
+		table.insert(
+			originalEffects,
+			obj:Clone()
+		)
+	end
+end
+
+local function RemoveEffects()
+
+	for _,obj in ipairs(Lighting:GetChildren()) do
+
+		if obj:IsA("Atmosphere")
+		or obj:IsA("BloomEffect")
+		or obj:IsA("SunRaysEffect")
+		or obj:IsA("BlurEffect")
+		or obj:IsA("ColorCorrectionEffect")
+		or obj:IsA("DepthOfFieldEffect") then
+
+			obj:Destroy()
+		end
+	end
+end
+
+local function QualidadeOld()
+
+	RemoveEffects()
+
+	Lighting.Technology =
+		Enum.Technology.Compatibility
+
+	Lighting.GlobalShadows = false
+	Lighting.Brightness = 2.12
+	Lighting.ExposureCompensation = 0
+
+	Lighting.Ambient =
+		Color3.fromRGB(148,148,148)
+
+	Lighting.OutdoorAmbient =
+		Color3.fromRGB(148,148,148)
+
+	Lighting.FogStart = 100000
+	Lighting.FogEnd = 100000
+end
+
+local function Qualidade2024()
+
+	RemoveEffects()
+
+	pcall(function()
+		Lighting.Technology =
+			Enum.Technology.Future
+	end)
+
+	Lighting.GlobalShadows = true
+	Lighting.Brightness = 2.05
+
+	Lighting.ExposureCompensation =
+		0.035
+
+	Lighting.EnvironmentDiffuseScale =
+		0.18
+
+	Lighting.EnvironmentSpecularScale =
+		0
+
+	Lighting.Ambient =
+		Color3.fromRGB(
+			176,176,176
+		)
+
+	Lighting.OutdoorAmbient =
+		Color3.fromRGB(
+			162,162,162
+		)
+
+	Lighting.FogStart = 0
+	Lighting.FogEnd = 100000
+
+	local cc =
+		Instance.new(
+			"ColorCorrectionEffect"
+		)
+
+	cc.Name =
+		"MM22024FinalClip"
+
+	cc.Saturation = -0.012
+	cc.Contrast = 0.012
+	cc.Brightness = 0.012
+
+	cc.Parent = Lighting
+end
+
+local function RestaurarQualidade()
+
+	RemoveEffects()
+
+	Lighting.Technology =
+		originalLighting.Technology
+
+	Lighting.GlobalShadows =
+		originalLighting.GlobalShadows
+
+	Lighting.Brightness =
+		originalLighting.Brightness
+
+	Lighting.ExposureCompensation =
+		originalLighting.ExposureCompensation
+
+	Lighting.Ambient =
+		originalLighting.Ambient
+
+	Lighting.OutdoorAmbient =
+		originalLighting.OutdoorAmbient
+
+	Lighting.FogStart =
+		originalLighting.FogStart
+
+	Lighting.FogEnd =
+		originalLighting.FogEnd
+
+	Lighting.EnvironmentDiffuseScale =
+		originalLighting.EnvironmentDiffuseScale
+
+	Lighting.EnvironmentSpecularScale =
+		originalLighting.EnvironmentSpecularScale
+
+	for _,obj in ipairs(originalEffects) do
+		obj:Clone().Parent = Lighting
+	end
+end
+
+BtnQualityOld.MouseButton1Click:Connect(function()
+
+	QualidadeOld()
+
+	BtnQualityOld.BackgroundColor3 =
+		VERDE
+
+	BtnQuality2024.BackgroundColor3 =
+		ROSA
+end)
+
+BtnQuality2024.MouseButton1Click:Connect(function()
+
+	Qualidade2024()
+
+	BtnQuality2024.BackgroundColor3 =
+		VERDE
+
+	BtnQualityOld.BackgroundColor3 =
+		ROSA
+end)
+
+BtnQualityOff.MouseButton1Click:Connect(function()
+
+	RestaurarQualidade()
+
+	BtnQualityOld.BackgroundColor3 =
+		ROSA
+
+	BtnQuality2024.BackgroundColor3 =
+		ROSA
+end)
+
+--==================================================
+-- BOMBA GOLD
+--==================================================
+
+local bombaGold = false
+local goldHumanoid
+local goldRoot
+local goldHolding = false
+local goldTool
+local goldLastJump = 0
+
+local GOLD_COOLDOWN = 0.18
+local GOLD_NAME = "gold c4 bomb"
+
+local function criarGold()
+
+	local tool = Instance.new("Tool")
+
+	tool.Name = GOLD_NAME
+	tool.RequiresHandle = true
+	tool.CanBeDropped = false
+	tool.ToolTip = "Pule quantas vezes quiser"
+
+	local handle = Instance.new("Part")
+
+	handle.Name = "Handle"
+	handle.Size =
+		Vector3.new(1.3,1.3,1.3)
+
+	handle.BrickColor =
+		BrickColor.new("Gold")
+
+	handle.Material =
+		Enum.Material.Neon
+
+	handle.CanCollide = false
+	handle.Parent = tool
+
+	tool.Equipped:Connect(function()
+
+		if bombaGold then
+
+			goldHolding = true
+			goldTool = tool
+		end
+	end)
+
+	tool.Unequipped:Connect(function()
+		goldHolding = false
+	end)
+
+	return tool
+end
+
+local function garantirGold()
+
+	if not bombaGold then
+		return
+	end
+
+	for _,item in ipairs(
+		Player.Backpack:GetChildren()
+	) do
+
+		if item.Name == GOLD_NAME then
+			item:Destroy()
+		end
+	end
+
+	if Player.Character then
+
+		for _,item in ipairs(
+			Player.Character:GetChildren()
+		) do
+
+			if item.Name == GOLD_NAME then
+				item:Destroy()
+			end
+		end
+	end
+
+	local tool = criarGold()
+
+	tool.Parent =
+		Player.Backpack
+
+	goldTool = tool
+end
+
+local function configurarGold(char)
+
+	gol
