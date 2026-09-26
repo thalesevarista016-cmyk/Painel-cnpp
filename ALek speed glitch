@@ -1,0 +1,105 @@
+local MaxLimit, CurrentWeight = 50, 20.6
+local WeightName, OffsetAmount = "CoMWeight_Object", Vector3.new(0, 0, 6)
+local Players, RunService, UserInputService, CoreGui = game:GetService("Players"), game:GetService("RunService"), game:GetService("UserInputService"), game:GetService("CoreGui")
+local LocalPlayer = Players.LocalPlayer
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name, ScreenGui.ResetOnSpawn, ScreenGui.Parent = "AleksCoMUI", false, CoreGui:FindFirstChild("RobloxGui") or CoreGui
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size, MainFrame.Position = UDim2.new(0, 360, 0, 90), UDim2.new(0.5, -180, 0.4, -45)
+MainFrame.BackgroundColor3, MainFrame.BorderSizePixel, MainFrame.Active, MainFrame.Draggable = Color3.fromRGB(255, 255, 255), 0, true, true
+MainFrame.Parent = ScreenGui
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 8)
+
+local StarbornFont = Font.new("rbxasset://fonts/families/FredokaOne.json", Enum.FontWeight.Bold)
+
+local SliderBackground = Instance.new("Frame")
+SliderBackground.Size, SliderBackground.Position = UDim2.new(0, 220, 0, 8), UDim2.new(0, 20, 0, 45)
+SliderBackground.BackgroundColor3, SliderBackground.BorderSizePixel = Color3.fromRGB(220, 220, 225), 0
+SliderBackground.Parent = MainFrame
+Instance.new("UICorner", SliderBackground).CornerRadius = UDim.new(0, 4)
+
+local SliderFill = Instance.new("Frame")
+SliderFill.Size, SliderFill.BackgroundColor3, SliderFill.BorderSizePixel = UDim2.new((CurrentWeight / MaxLimit), 0, 1, 0), Color3.fromRGB(255, 105, 180), 0
+SliderFill.Parent = SliderBackground
+Instance.new("UICorner", SF).CornerRadius = UDim.new(0, 4)
+
+local SliderButton = Instance.new("TextButton")
+SliderButton.Size, SliderButton.Position = UDim2.new(0, 16, 0, 16), UDim2.new((CurrentWeight / MaxLimit), -8, 0.5, -8)
+SliderButton.BackgroundColor3, SliderButton.Text, SliderButton.BorderSizePixel = Color3.fromRGB(255, 20, 147), "", 0
+SliderButton.Parent = SliderBackground
+Instance.new("UICorner", SliderButton).CornerRadius = UDim.new(1, 0)
+
+local NumberInput = Instance.new("TextBox")
+NumberInput.Size, NumberInput.Position = UDim2.new(0, 65, 0, 30), UDim2.new(0, 265, 0, 34)
+NumberInput.BackgroundColor3, NumberInput.TextColor3, NumberInput.FontFace, NumberInput.TextSize = Color3.fromRGB(240, 240, 245), Color3.fromRGB(255, 20, 147), StarbornFont, 16
+NumberInput.Text, NumberInput.BorderSizePixel, NumberInput.ClearTextOnFocus = tostring(CurrentWeight), 0, false
+NumberInput.Parent = MainFrame
+Instance.new("UICorner", NumberInput).CornerRadius = UDim.new(0, 6)
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size, TitleLabel.Position, TitleLabel.BackgroundTransparency = UDim2.new(0, 220, 0, 25), UDim2.new(0, 20, 0, 10), 1
+TitleLabel.Text, TitleLabel.TextColor3, TitleLabel.FontFace, TitleLabel.TextSize, TitleLabel.TextXAlignment = "ALEKS SPEED GLITCH", Color3.fromRGB(255, 20, 147), StarbornFont, 15, Enum.TextXAlignment.Left
+TitleLabel.Parent = MainFrame
+
+-- Exact physics modification logic from your original script
+local function ApplyPhysicsWeight(massValue)
+    local character = LocalPlayer.Character
+    if not character then return end
+    local root = character:WaitForChild("HumanoidRootPart", 5)
+    if not root then return end
+
+    local existing = character:FindFirstChild(WeightName)
+    if existing then existing:Destroy() end
+
+    if massValue > 0 then
+        local weight = Instance.new("Part")
+        weight.Name = WeightName
+        weight.Size = Vector3.new(1, 1, 1)
+        weight.Transparency = 1
+        weight.CanCollide = false
+        weight.CanQuery = false
+        weight.Parent = character
+
+        local weld = Instance.new("Weld")
+        weld.Part0, weld.Part1, weld.C0, weld.Parent = root, weight, CFrame.new(OffsetAmount), weight
+        
+        weight.Massless = false
+        weight.CustomPhysicalProperties = PhysicalProperties.new(massValue, 0.3, 0.5)
+    end
+end
+
+local function UpdateWeightValues(newValue)
+    CurrentWeight = math.clamp(newValue, 0, MaxLimit)
+    NumberInput.Text = tostring(math.floor(CurrentWeight * 10) / 10)
+    local Percent = CurrentWeight / MaxLimit
+    SliderFill.Size = UDim2.new(Percent, 0, 1, 0)
+    SliderButton.Position = UDim2.new(Percent, -8, 0.5, -8)
+    ApplyPhysicsWeight(CurrentWeight)
+end
+
+local Dragging = false
+SliderButton.MouseButton1Down:Connect(function() Dragging = true end)
+UserInputService.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then Dragging = false end end)
+
+RunService.RenderStepped:Connect(function()
+    if Dragging then
+        local MousePos = UserInputService:GetMouseLocation().X
+        local Percent = math.clamp((MousePos - SliderBackground.AbsolutePosition.X) / SliderBackground.AbsoluteSize.X, 0, 1)
+        UpdateWeightValues(Percent * MaxLimit)
+    end
+end)
+
+NumberInput.FocusLost:Connect(function()
+    local n = tonumber(NumberInput.Text)
+    if n then UpdateWeightValues(n) else NumberInput.Text = tostring(CurrentWeight) end
+end)
+
+LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(1)
+    if CurrentWeight > 0 then ApplyPhysicsWeight(CurrentWeight) end
+end)
+
+-- Soft load baseline weight state on execution
+task.spawn(function() task.wait(0.5) ApplyPhysicsWeight(CurrentWeight) end)
